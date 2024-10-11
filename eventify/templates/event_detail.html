@@ -6,9 +6,9 @@
     <h3 class="center-align lime-text text-darken-4">{{ event.title }}</h3>
     
     <!-- Display the event image if it exists -->
-    {% if event.image_file %}
+    {% if event.image %}
         <div class="center-align">
-            <img src="{{ url_for('static', filename='images/' + event.image_file) }}" alt="{{ event.title }}" class="responsive-img" style="max-height: 300px; max-width: 100%;">
+            <img src="{{ url_for('static', filename='images/' + event.image) }}" alt="{{ event.title }}" class="responsive-img" style="max-height: 300px; max-width: 100%;">
         </div>
     {% endif %}
     

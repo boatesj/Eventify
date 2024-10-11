@@ -7,17 +7,6 @@
 
     <form method="POST" action="{{ url_for('add_event') }}" class="row" enctype="multipart/form-data">
 
-        <!-- Error messages (form validation) -->
-        {% if form.errors %}
-            <ul class="errors">
-                {% for field, errors in form.errors.items() %}
-                    {% for error in errors %}
-                        <li>{{ field }}: {{ error }}</li>
-                    {% endfor %}
-                {% endfor %}
-            </ul>
-        {% endif %}
-
         <!-- Event Title -->
         <div class="row">
             <div class="input-field col s12">

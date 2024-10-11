@@ -57,16 +57,27 @@ def event_detail(event_id):
 
 
 # Create a new event
+# Create a new event
 @app.route("/add_event", methods=["GET", "POST"])
 def add_event():
     categories = Category.query.all()  # Fetch all categories
     if request.method == "POST":
         try:
-            # Parse the date and time input from the form
+            # Extract event details from the form
+            title = request.form.get("title")
+            description = request.form.get("description")
             event_date_raw = request.form.get("date")  # Expecting 'dd-mm-yyyy'
             event_time_raw = request.form.get("time")  # Expecting 'HH:MM'
+            location = request.form.get("location")
+            category_id = request.form.get("category_id")
+            featured = request.form.get("featured") == "1"  # Store as boolean
 
-            # Split the date and time strings
+            # Debugging: Log form data for troubleshooting
+            print("Form Data:", request.form)
+            print("Selected Date:", event_date_raw)
+            print("Selected Time:", event_time_raw)
+
+            # Parse the date and time strings
             day, month, year = map(int, event_date_raw.split('-'))
             hour, minute = map(int, event_time_raw.split(':'))
 
@@ -74,42 +85,39 @@ def add_event():
             event_date = datetime(year, month, day, hour, minute)
 
             # Handle file upload
-            file = request.files.get('image')  # Get the uploaded file
+            file = request.files.get('image')
             filename = None
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
-                
-                # Ensure the directory exists before saving the file
                 file_path = os.path.join(app.static_folder, 'images', filename)
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)  # Create the directory if it doesn't exist
-
-                # Save the file to the defined path
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 file.save(file_path)
 
             # Create the event and save it to the database
             event = Event(
-                title=request.form.get("title"),
-                description=request.form.get("description"),
-                date=event_date.strftime('%d-%m-%Y'),  # Store the date as a string
-                time=event_time_raw,  # Store the time as a string
-                location=request.form.get("location"),
-                category_id=request.form.get("category_id"),
-                featured=request.form.get("featured") == "1",  # Store featured status
-                image=filename  # Store the filename in the database
+                title=title,
+                description=description,
+                date=event_date,  # Store date as datetime object
+                time=event_time_raw,  # Store time as string
+                location=location,
+                category_id=category_id,
+                featured=featured,
+                image_file=filename  # Store the filename in the database
             )
 
             db.session.add(event)
             db.session.commit()
             flash('Event added successfully!', 'success')
-            return redirect(url_for("home"))
+            return redirect(url_for('home'))
 
         except Exception as e:
-            # Rollback transaction in case of an error
             db.session.rollback()
-            flash(f'An error occurred: {str(e)}', 'error')
-            return redirect(url_for("add_event"))
+            flash(f'Error adding event: {str(e)}', 'error')
+            return redirect(url_for('add_event'))
 
     return render_template("add_event.html", categories=categories)
+
+
 
 
 
