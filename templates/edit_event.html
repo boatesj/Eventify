@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Event{% endblock %}
+
+{% block content %}
+    <h3 class="center-align lime-text text-darken-4">Edit Event</h3>
+
+    <form method="POST" action="{{ url_for('edit_event', event_id=event.id) }}" class="row" enctype="multipart/form-data">
+        <div class="input-field col s12">
+            <input type="text" name="title" id="title" value="{{ event.title }}" required>
+            <label for="title" class="active">Event Title</label>
+        </div>
+
+        <div class="input-field col s12">
+            <textarea name="description" id="description" class="materialize-textarea">{{ event.description }}</textarea>
+            <label for="description" class="active">Event Description</label>
+        </div>
+
+        <div class="input-field col s12">
+            <input type="text" name="date" id="date" value="{{ event.date.strftime('%d-%m-%Y') }}" required>
+            <label for="date" class="active">Event Date</label>
+        </div>
+
+        <div class="input-field col s12">
+            <input type="text" name="time" id="time" value="{{ event.date.strftime('%H:%M') }}" required>
+            <label for="time" class="active">Event Time</label>
+        </div>
+
+        <div class="input-field col s12">
+            <input type="text" name="location" id="location" value="{{ event.location }}" required>
+            <label for="location" class="active">Event Location</label>
+        </div>
+
+        <div class="input-field col s12">
+            <select name="category_id" required>
+                <option value="" disabled selected>Choose Category</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if event.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+            <label>Event Category</label>
+        </div>      
+
+        <!-- Featured Checkbox -->
+        <div class="input-field col s12">
+            <label>
+                <input type="checkbox" name="featured" value="1" {% if event.featured %}checked{% endif %} />
+                <span>Mark as Featured</span>
+            </label>
+        </div>     
+
+        <!-- Event Image Upload -->
+        <div class="input-field col s12">
+            <label for="image" style="margin-top: 10px;">Upload Event Image (optional)</label>
+            <input type="file" name="image" id="image" accept="image/*">
+        </div>
+
+        <!-- Submit Button -->
+        <div class="row">
+            <div class="col s12 center-align">
+                <button type="submit" class="btn-large lime darken-4">Update Event</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- RSVP Form -->
+    <div class="row" style="margin-top: 20px;">
+        <form method="POST" action="{{ url_for('rsvp', event_id=event.id) }}" class="col s12">
+            <h5>RSVP for this Event</h5>
+            <div class="input-field col s12">
+                <input type="text" name="name" id="name" required>
+                <label for="name">Your Name</label>
+            </div>
+            <div class="input-field col s12">
+                <input type="email" name="email" id="email" required>
+                <label for="email">Your Email</label>
+            </div>
+            <div class="input-field col s12">
+                <label>
+                    <input type="checkbox" name="attending" value="1" />
+                    <span>Will you be attending?</span>
+                </label>
+            </div>
+            <div class="col s12">
+                <button type="submit" class="btn-large lime darken-4">Submit RSVP</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

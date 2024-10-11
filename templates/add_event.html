@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Event{% endblock %}
+
+{% block content %}
+    <h3 class="center-align lime-text text-darken-4">Add New Event</h3>
+
+    <form method="POST" action="{{ url_for('add_event') }}" class="row" enctype="multipart/form-data">
+
+        <!-- Error messages (form validation) -->
+        {% if form.errors %}
+            <ul class="errors">
+                {% for field, errors in form.errors.items() %}
+                    {% for error in errors %}
+                        <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <!-- Event Title -->
+        <div class="row">
+            <div class="input-field col s12">
+                <i class="fa fa-pencil-alt prefix lime-text text-darken-4"></i>
+                <input name="title" id="title" type="text" class="validate" required>
+                <label for="title">Event Title</label>
+            </div>
+        </div>
+
+        <!-- Event Description -->
+        <div class="row">
+            <div class="input-field col s12">
+                <i class="fa fa-align-left prefix lime-text text-darken-4"></i>
+                <textarea name="description" id="description" minlength="5" maxlength="200" class="materialize-textarea validate" required></textarea>
+                <label for="description">Event Description</label>
+            </div>
+        </div>
+
+        <!-- Event Date -->
+        <div class="row">
+            <div class="input-field col s12">
+                <i class="fa fa-calendar-alt prefix lime-text text-darken-4"></i>
+                <input id="date" name="date" type="text" class="datepicker validate" required>
+                <label for="date" class="active">Event Date</label>
+            </div>
+        </div>
+
+        <!-- Event Time -->
+        <div class="row">
+            <div class="input-field col s12">
+                <i class="fa fa-clock prefix lime-text text-darken-4"></i>
+                <input id="time" name="time" type="text" class="timepicker validate" required>
+                <label for="time" class="active">Event Time</label>
+            </div>
+        </div>
+
+        <!-- Event Location -->
+        <div class="row">
+            <div class="input-field col s12">
+                <i class="fa fa-map-marker-alt prefix lime-text text-darken-4"></i>
+                <input type="text" name="location" id="location" required>
+                <label for="location">Event Location</label>
+            </div>
+        </div>
+
+        <!-- Event Category Dropdown -->
+        <div class="row">
+            <div class="input-field col s12">
+                <i class="fa fa-tags prefix lime-text text-darken-4"></i> 
+                <select name="category_id" required>
+                    <option value="" disabled selected>Choose Category</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+                <label for="category_id">Event Category</label>
+            </div>
+        </div>
+
+        <!-- Featured Checkbox -->
+        <div class="input-field col s12">
+            <label>
+                <input type="checkbox" name="featured" value="1" />
+                <span>Mark as Featured</span>
+            </label>
+        </div>
+
+        <!-- Event Image Upload -->
+        <div class="input-field col s12">
+            <label for="image" style="margin-top: 10px;">Upload Event Image (optional)</label>
+            <input type="file" name="image" id="image" accept="image/*">
+        </div>
+
+        <!-- Submit Button -->
+        <div class="row">
+            <div class="col s12 center-align">
+                <button type="submit" class="btn-large lime darken-4">
+                    Add Event <i class="fas fa-plus-square right"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

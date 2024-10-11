@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+        integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+        type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" type="text/css">
+    <title>{% block title %}Eventify{% endblock %}</title>
+</head>
+
+<body>
+
+    <header>
+        <nav class="lime darken-3">
+            <div class="nav-wrapper">
+                <a href="{{ url_for('home') }}" class="brand-logo white-text">Eventify</a>
+                <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="fas fa-bars"></i></a>
+                <ul class="right hide-on-med-and-down">
+                    <li><a href="{{ url_for('home') }}" class="white-text nav-link-custom">Home</a></li>
+                    <li><a href="{{ url_for('add_event') }}" class="white-text nav-link-custom">New Event</a></li>
+                    <li><a href="{{ url_for('add_category') }}" class="white-text nav-link-custom">New Category</a></li> <!-- New link for adding category -->
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Mobile sidenav -->
+        <ul class="sidenav" id="mobile-demo">
+            <li><a href="{{ url_for('home') }}" class="teal-text nav-link-custom">Home</a></li>
+            <li><a href="{{ url_for('add_event') }}" class="teal-text nav-link-custom">New Event</a></li>
+            <li><a href="{{ url_for('add_category') }}" class="teal-text nav-link-custom">New Category</a></li> <!-- New link for mobile sidenav -->
+        </ul>
+    </header>
+
+    <main class="container">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="page-footer lime darken-4">
+        <div class="footer-copyright">
+            <div class="container">
+                Milestone 3 Project
+                <a class="white-text right" href="https://codeinstitute.net" target="_blank">&copy; Code Institute Milestone 3 Project</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>
