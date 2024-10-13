@@ -39,10 +39,9 @@ def home():
 @app.route("/event/<int:event_id>", methods=["GET", "POST"])
 def event_detail(event_id):
     event = Event.query.get_or_404(event_id)
+    rsvps = RSVP.query.filter_by(event_id=event_id).all()  # Fetch RSVPs for this event
 
-    # Fetch all RSVPs for this event to display on the event page
-    rsvps = RSVP.query.filter_by(event_id=event_id).all()
-
+    
     if request.method == "POST":
         try:
             # Debugging: Log the form data
@@ -238,30 +237,76 @@ def add_category():
 
     return render_template("add_category.html", categories=categories)
 
-# Search for events by title or description
+    
+
+# Search for events by title, description, category, date range, and location
 @app.route("/search", methods=["GET", "POST"])
 def search():
+    categories = Category.query.all()  # Fetch all categories for dropdown
+
     if request.method == "POST":
-        search_term = request.form.get("search_term").strip()  # Strip any extra spaces
+        # Get search term and strip extra spaces
+        search_term = request.form.get("search_term", "").strip()
         search_query = f"%{search_term}%"
 
-        # Filter events by title or description that match the search term
-        matched_events = Event.query.filter(
+        # Get selected filters from the form
+        selected_category = request.form.get("category_id")
+        start_date = request.form.get("start_date")
+        end_date = request.form.get("end_date")
+        location = request.form.get("location", "").strip()  # Location-based search
+        sort_by = request.form.get("sort_by")  # Sort by date or popularity
+
+        # Build the base query for title and description search
+        query = Event.query.filter(
             (Event.title.ilike(search_query)) | 
             (Event.description.ilike(search_query))
-        ).all()
+        )
 
-        # Get the current date and time
+        # Filter by category if selected
+        if selected_category:
+            query = query.filter(Event.category_id == selected_category)
+
+        # Filter by location if provided
+        if location:
+            query = query.filter(Event.location.ilike(f"%{location}%"))
+
+        # Filter by date range if provided
+        if start_date:
+            query = query.filter(Event.date >= datetime.strptime(start_date, '%Y-%m-%d'))
+        if end_date:
+            query = query.filter(Event.date <= datetime.strptime(end_date, '%Y-%m-%d'))
+
+        # Sort results by date or popularity
+        if sort_by == "date":
+            query = query.order_by(Event.date.asc())
+        elif sort_by == "popularity":
+            # Assuming you track RSVPs, sort by the count of RSVPs
+            query = query.outerjoin(RSVP).group_by(Event.id).order_by(db.func.count(RSVP.id).desc())
+
+        # Execute the query to get matched events
+        matched_events = query.all()
+
+        # Get current date and time to split upcoming and past events
         now = datetime.now()
-
-        # Separate the matched events into upcoming and past
         upcoming_events = [event for event in matched_events if event.date >= now]
         past_events = [event for event in matched_events if event.date < now]
 
         # Render the events page with the filtered results
-        return render_template("events.html", upcoming_events=upcoming_events, past_events=past_events)
+        return render_template(
+            "events.html", 
+            upcoming_events=upcoming_events, 
+            past_events=past_events, 
+            categories=categories,
+            search_term=search_term, 
+            selected_category=selected_category, 
+            start_date=start_date, 
+            end_date=end_date, 
+            location=location,
+            sort_by=sort_by
+        )
 
     return redirect(url_for("home"))
+
 
 
 # Create a new RSVP

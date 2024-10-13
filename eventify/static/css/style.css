@@ -133,3 +133,27 @@ nav ul li a:hover {
     margin-bottom: 20px;
 }
 
+/* Style the search input field */
+input[name="search_term"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Style the search button */
+button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #388e3c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button[type="submit"]:hover {
+    background-color: #2e7d32;
+}

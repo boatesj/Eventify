@@ -7,12 +7,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let selects = document.querySelectorAll('select');
     M.FormSelect.init(selects);
 
-    // Initialize datepicker
+    // Initialize datepicker (for event creation and search filters)
     var dateElems = document.querySelectorAll('.datepicker');
     if (dateElems.length > 0) {
         console.log('Datepicker elements:', dateElems);  // Debugging log
         M.Datepicker.init(dateElems, {
-            format: 'dd-mm-yyyy',
+            format: 'yyyy-mm-dd',  // Adjusted format for consistency with the database search filters
             autoClose: true,
             onClose: function() {
                 console.log("Selected date:", dateElems[0].value);
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Datepicker elements not found.");
     }
 
-    // Initialize timepicker
+    // Initialize timepicker (for event creation)
     var timeElems = document.querySelectorAll('.timepicker');
     if (timeElems.length > 0) {
         console.log('Timepicker elements:', timeElems);  // Debugging log
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Timepicker elements not found.");
     }
 
-    // Collapsible initialization
+    // Collapsible initialization (for any collapsible UI elements in the app)
     let collapsibles = document.querySelectorAll('.collapsible');
     M.Collapsible.init(collapsibles);
 });
