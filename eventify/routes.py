@@ -35,28 +35,62 @@ def home():
     return render_template("events.html", upcoming_events=upcoming_events, past_events=past_events, featured_events=featured_events)
 
 
-# Event detail page
+# Add event details
 @app.route("/event/<int:event_id>", methods=["GET", "POST"])
 def event_detail(event_id):
     event = Event.query.get_or_404(event_id)
 
+    # Fetch all RSVPs for this event to display on the event page
+    rsvps = RSVP.query.filter_by(event_id=event_id).all()
+
     if request.method == "POST":
-        # Handle RSVP form submission
-        name = request.form.get("name")
-        email = request.form.get("email")
-        attending = request.form.get("attending") == "1"  # Convert checkbox to boolean
+        try:
+            # Debugging: Log the form data
+            print(f"Form Submitted: {request.form}")
 
-        # Create a new RSVP entry
-        rsvp_entry = RSVP(event_id=event_id, name=name, email=email, attending=attending)
-        db.session.add(rsvp_entry)
-        db.session.commit()
-        flash("RSVP submitted successfully!", "success")  # Notify the user
-        return redirect(url_for("event_detail", event_id=event_id))  # Redirect to the same page to show the updated state
+            # Handle RSVP form submission
+            name = request.form.get("name")
+            email = request.form.get("email")
+            attending = request.form.get("attending") == "1" if request.form.get("attending") else False
 
-    return render_template("event_detail.html", event=event)
+            # Debugging: Log the RSVP details
+            print(f"RSVP Details - Name: {name}, Email: {email}, Attending: {attending}")
+
+            # Check if an RSVP for this event and email already exists
+            existing_rsvp = RSVP.query.filter_by(event_id=event_id, email=email).first()
+
+            if existing_rsvp:
+                # Debugging: Log existing RSVP update
+                print(f"Updating existing RSVP for {email}")
+
+                # If RSVP exists, update it
+                existing_rsvp.attending = attending
+                existing_rsvp.name = name  # Update name in case the user changes it
+                db.session.commit()
+                flash(f"RSVP updated successfully for {email}!", "success")
+            else:
+                # Debugging: Log new RSVP creation
+                print(f"Creating new RSVP for {email}")
+
+                # Create a new RSVP entry
+                rsvp_entry = RSVP(event_id=event_id, name=name, email=email, attending=attending)
+                db.session.add(rsvp_entry)
+                db.session.commit()
+                flash(f"RSVP submitted successfully for {email}!", "success")
+
+            # Redirect to avoid form re-submission on refresh
+            return redirect(url_for("event_detail", event_id=event_id))
+
+        except Exception as e:
+            db.session.rollback()  # Roll back any changes in case of an error
+            flash(f"Error submitting RSVP: {str(e)}", "error")
+            return redirect(url_for("event_detail", event_id=event_id))
+
+    # Pass the RSVPs to the template for display
+    return render_template("event_detail.html", event=event, rsvps=rsvps)
 
 
-# Create a new event
+
 # Create a new event
 @app.route("/add_event", methods=["GET", "POST"])
 def add_event():
