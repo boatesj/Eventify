@@ -5,7 +5,9 @@ from eventify import app, db
 from eventify.models import Event, Category
 from datetime import datetime
 from eventify.models import RSVP  # Import the RSVP model
-
+from eventify.email_utils import send_rsvp_confirmation
+from flask_mail import Message
+from eventify import mail
 
 # Allowed image extensions
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -324,5 +326,16 @@ def rsvp(event_id):
     db.session.add(rsvp_entry)
     db.session.commit()
 
-    flash('Thank you for your RSVP!', 'success')
+    # Send confirmation email using the utility function
+    if send_rsvp_confirmation(name, email, event):
+        flash('Thank you for your RSVP! A confirmation email has been sent.', 'success')
+    else:
+        flash('RSVP submitted but failed to send confirmation email.', 'error')
+
     return redirect(url_for('event_detail', event_id=event.id))
+
+    import sys
+print(sys.path)
+
+
+

@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
 from config import Config
+from flask_mail import Mail
 import os
 
 # Check if env.py exists and load it (to set environment variables locally)
@@ -20,6 +21,9 @@ db = SQLAlchemy(app)
 
 # Initialize Flask-Migrate for handling migrations
 migrate = Migrate(app, db)
+
+# Initialize Flask extensions
+mail = Mail(app)
 
 # Custom filter to format datetime to 'dd-mm-yyyy'
 @app.template_filter('dateformat')
