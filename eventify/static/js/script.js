@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (dateElems.length > 0) {
         console.log('Datepicker elements:', dateElems);  // Debugging log
         M.Datepicker.init(dateElems, {
-            format: 'yyyy-mm-dd',  // Adjusted format for consistency with the database search filters
+            format: 'dd-mm-yyyy',  // U.K. date format
             autoClose: true,
             onClose: function() {
                 console.log("Selected date:", dateElems[0].value);

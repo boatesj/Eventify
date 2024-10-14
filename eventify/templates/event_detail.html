@@ -5,7 +5,6 @@
 {% block content %}
     <h3 class="center-align lime-text text-darken-4">{{ event.title }}</h3>
     
-    
     <!-- Display the event image if it exists -->
     {% if event.image_file %}
         <div class="center-align">
@@ -41,48 +40,52 @@
     </div>
 
     <!-- RSVP Form -->
-        <div class="row">
-            <form method="POST" action="{{ url_for('event_detail', event_id=event.id) }}" class="col s12">
-                <h5 class="center-align">RSVP</h5>
-                <div class="input-field col s12">
-                    <input type="text" name="name" id="name" required>
-                    <label for="name">Your Name</label>
-                </div>
-                <div class="input-field col s12">
-                    <input type="email" name="email" id="email" required>
-                    <label for="email">Your Email</label>
-                </div>
-                <!-- Hidden field to ensure a default value is sent if checkbox is not checked -->
-                <input type="hidden" name="attending" value="0">
-                <div class="input-field col s12">
-                    <label>
-                        <input type="checkbox" name="attending" value="1">
-                        <span>Will you be attending?</span>
-                    </label>
-                </div>
-                <div class="col s12 center-align">
-                    <button type="submit" class="btn-large lime darken-4">Submit RSVP</button>
-                </div>
-            </form>
-        </div>
-        <!-- Display the RSVP List -->
-        <div class="row">
-            <h5 class="center-align">Attendees</h5>
-            <ul class="collection">
-                {% for rsvp in rsvps %}
-                    <li class="collection-item">
-                        <strong>{{ rsvp.name }}</strong> - {{ rsvp.email }}
-                        {% if rsvp.attending %}
-                            <span class="badge green-text">Attending</span>
-                        {% else %}
-                            <span class="badge red-text">Not Attending</span>
-                        {% endif %}
-                    </li>
-                {% else %}
-                    <li class="collection-item">No RSVPs yet.</li>
-                {% endfor %}
-            </ul>
-        </div>
+    <div class="row">
+        <form method="POST" action="{{ url_for('rsvp', event_id=event.id) }}" class="col s12">
+            <h5 class="center-align">RSVP</h5>
+            <div class="input-field col s12">
+                <input type="text" name="name" id="name" value="{{ request.form.name or '' }}" required>
+                <label for="name">Your Name</label>
+            </div>
+            <div class="input-field col s12">
+                <input type="email" name="email" id="email" value="{{ request.form.email or '' }}" required>
+                <label for="email">Your Email</label>
+            </div>
+            
+            <!-- Hidden field to ensure a default value is sent if checkbox is not checked -->
+            <input type="hidden" name="attending" value="0">
+            
+            <!-- Checkbox for 'Will you be attending?' -->
+            <div class="input-field col s12">
+                <label>
+                    <input type="checkbox" name="attending" value="1" {% if rsvp_entry and rsvp_entry.attending %} checked {% endif %}>
+                    <span>Will you be attending?</span>
+                </label>
+            </div>
+            <div class="col s12 center-align">
+                <button type="submit" class="btn-large lime darken-4">Submit RSVP</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Display the RSVP List -->
+    <div class="row">
+        <h5 class="center-align">Attendees</h5>
+        <ul class="collection">
+            {% for rsvp in rsvps %}
+                <li class="collection-item">
+                    <strong>{{ rsvp.name }}</strong> - {{ rsvp.email }}
+                    {% if rsvp.attending %}
+                        <span class="badge green-text">Attending</span>
+                    {% else %}
+                        <span class="badge red-text">Not Attending</span>
+                    {% endif %}
+                </li>
+            {% else %}
+                <li class="collection-item">No RSVPs yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
 
     <!-- Add a "Back to Events" button for navigation -->
     <div class="center-align" style="margin-top: 20px; margin-bottom: 20px;">

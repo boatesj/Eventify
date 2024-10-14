@@ -113,7 +113,7 @@ def add_event():
             print("Selected Date:", event_date_raw)
             print("Selected Time:", event_time_raw)
 
-            # Parse the date and time strings
+            # Parse the date and time strings using dd-mm-yyyy format
             day, month, year = map(int, event_date_raw.split('-'))
             hour, minute = map(int, event_time_raw.split(':'))
 
@@ -152,6 +152,7 @@ def add_event():
             return redirect(url_for('add_event'))
 
     return render_template("add_event.html", categories=categories)
+
 
 
 
@@ -320,11 +321,23 @@ def rsvp(event_id):
     # Get form data
     name = request.form.get("name")
     email = request.form.get("email")
-    attending = request.form.get("attending") == "1"  # Check if the user is attending
+    
+    # Check if attending checkbox is ticked (if checkbox is submitted)
+    attending = request.form.get("attending") is not None
 
-    # Create an RSVP instance
-    rsvp_entry = RSVP(event_id=event.id, name=name, email=email, attending=attending)
-    db.session.add(rsvp_entry)
+    # Check if an RSVP for this event and email already exists
+    rsvp_entry = RSVP.query.filter_by(event_id=event_id, email=email).first()
+
+    if rsvp_entry:
+        # Update existing RSVP
+        rsvp_entry.attending = attending
+        rsvp_entry.name = name  # Update name in case of changes
+    else:
+        # Create a new RSVP entry
+        rsvp_entry = RSVP(event_id=event.id, name=name, email=email, attending=attending)
+        db.session.add(rsvp_entry)
+
+    # Commit the changes
     db.session.commit()
 
     # Send confirmation email using the utility function
@@ -334,6 +347,8 @@ def rsvp(event_id):
         flash('RSVP submitted but failed to send confirmation email.', 'error')
 
     return redirect(url_for('event_detail', event_id=event.id))
+
+
 
     import sys
 print(sys.path)
