@@ -11,7 +11,7 @@
         <div class="row">
             <div class="input-field col s12">
                 <i class="fa fa-pencil-alt prefix lime-text text-darken-4"></i>
-                <input name="title" id="title" type="text" class="validate" required>
+                <input name="title" id="title" type="text" class="validate" value="{{ request.form.title }}" required>
                 <label for="title">Event Title</label>
             </div>
         </div>
@@ -20,7 +20,7 @@
         <div class="row">
             <div class="input-field col s12">
                 <i class="fa fa-align-left prefix lime-text text-darken-4"></i>
-                <textarea name="description" id="description" minlength="5" maxlength="200" class="materialize-textarea validate" required></textarea>
+                <textarea name="description" id="description" minlength="5" maxlength="200" class="materialize-textarea validate" required>{{ request.form.description }}</textarea>
                 <label for="description">Event Description</label>
             </div>
         </div>
@@ -34,6 +34,7 @@
             </div>
         </div>
 
+
         <!-- Event Time -->
         <div class="row">
             <div class="input-field col s12">
@@ -43,11 +44,12 @@
             </div>
         </div>
 
+
         <!-- Event Location -->
         <div class="row">
             <div class="input-field col s12">
                 <i class="fa fa-map-marker-alt prefix lime-text text-darken-4"></i>
-                <input type="text" name="location" id="location" required>
+                <input type="text" name="location" id="location" value="{{ request.form.location }}" required>
                 <label for="location">Event Location</label>
             </div>
         </div>
@@ -59,7 +61,7 @@
                 <select name="category_id" required>
                     <option value="" disabled selected>Choose Category</option>
                     {% for category in categories %}
-                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        <option value="{{ category.id }}" {% if request.form.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
                     {% endfor %}
                 </select>
                 <label for="category_id">Event Category</label>
@@ -69,7 +71,7 @@
         <!-- Featured Checkbox -->
         <div class="input-field col s12">
             <label>
-                <input type="checkbox" name="featured" value="1" />
+                <input type="checkbox" name="featured" value="1" {% if request.form.featured %}checked{% endif %} />
                 <span>Mark as Featured</span>
             </label>
         </div>

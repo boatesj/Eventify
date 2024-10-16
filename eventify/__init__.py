@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from datetime import datetime
 from config import Config
 from flask_mail import Mail
+from flask_login import current_user  # Import Flask-Login's current_user
 import os
 
 # Check if env.py exists and load it (to set environment variables locally)
@@ -25,7 +26,7 @@ migrate = Migrate(app, db)
 # Initialize Flask extensions
 mail = Mail(app)
 
-# Custom filter to format datetime to 'dd-mm-yyyy'
+# Custom filter to format datetime to 'dd-mm-yyyy' (U.K. format)
 @app.template_filter('dateformat')
 def dateformat(value, format='%d-%m-%Y'):
     if value is None:
@@ -56,6 +57,11 @@ def datetime_local(value):
             return value
     
     return value.strftime('%Y-%m-%dT%H:%M')
+
+# Inject current_user globally into all templates
+@app.context_processor
+def inject_user():
+    return dict(user=current_user)
 
 # Import routes and models at the end to avoid circular imports
 from eventify import routes, models

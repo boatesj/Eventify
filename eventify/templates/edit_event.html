@@ -16,29 +16,32 @@
             <label for="description" class="active">Event Description</label>
         </div>
 
+        <!-- Event Date -->
         <div class="input-field col s12">
             <input type="text" name="date" id="date" value="{{ event.date.strftime('%d-%m-%Y') }}" required>
             <label for="date" class="active">Event Date</label>
         </div>
 
+        <!-- Event Time -->
         <div class="input-field col s12">
             <input type="text" name="time" id="time" value="{{ event.date.strftime('%H:%M') }}" required>
             <label for="time" class="active">Event Time</label>
         </div>
+
 
         <div class="input-field col s12">
             <input type="text" name="location" id="location" value="{{ event.location }}" required>
             <label for="location" class="active">Event Location</label>
         </div>
 
+        <!-- Event Category Dropdown -->
         <div class="input-field col s12">
             <select name="category_id" required>
-                <option value="" disabled selected>Choose Category</option>
                 {% for category in categories %}
                     <option value="{{ category.id }}" {% if event.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
                 {% endfor %}
             </select>
-            <label>Event Category</label>
+            <label for="category_id">Event Category</label>
         </div>      
 
         <!-- Featured Checkbox -->
@@ -62,28 +65,4 @@
             </div>
         </div>
     </form>
-
-    <!-- RSVP Form -->
-    <div class="row" style="margin-top: 20px;">
-        <form method="POST" action="{{ url_for('rsvp', event_id=event.id) }}" class="col s12">
-            <h5>RSVP for this Event</h5>
-            <div class="input-field col s12">
-                <input type="text" name="name" id="name" required>
-                <label for="name">Your Name</label>
-            </div>
-            <div class="input-field col s12">
-                <input type="email" name="email" id="email" required>
-                <label for="email">Your Email</label>
-            </div>
-            <div class="input-field col s12">
-                <label>
-                    <input type="checkbox" name="attending" value="1" />
-                    <span>Will you be attending?</span>
-                </label>
-            </div>
-            <div class="col s12">
-                <button type="submit" class="btn-large lime darken-4">Submit RSVP</button>
-            </div>
-        </form>
-    </div>
 {% endblock %}

@@ -1,6 +1,6 @@
 import sys
 import os
-from flask import request, redirect, url_for, flash, render_template
+from flask import request, redirect, url_for, flash, render_template, jsonify
 from werkzeug.utils import secure_filename
 from eventify import app, db
 from eventify.models import Event, Category
@@ -9,6 +9,12 @@ from eventify.models import RSVP  # Import the RSVP model
 from eventify.email_utils import send_rsvp_confirmation
 from flask_mail import Message
 from eventify import mail
+from datetime import datetime, timedelta
+from flask_login import current_user
+import json
+
+
+
 
 # Allowed image extensions
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -35,7 +41,8 @@ def home():
             upcoming_events = Event.query.filter(Event.date >= now).order_by(Event.date.desc()).all()
             past_events = Event.query.filter(Event.date < now).order_by(Event.date.desc()).all()
 
-    return render_template("events.html", upcoming_events=upcoming_events, past_events=past_events, featured_events=featured_events)
+  
+    return render_template("events.html", upcoming_events=upcoming_events, past_events=past_events, featured_events=featured_events, user=current_user)
 
 
 # Add event details
@@ -113,7 +120,7 @@ def add_event():
             print("Selected Date:", event_date_raw)
             print("Selected Time:", event_time_raw)
 
-            # Parse the date and time strings using dd-mm-yyyy format
+            # Parse the date and time strings using dd-mm-yyyy format for date and HH:MM for time
             day, month, year = map(int, event_date_raw.split('-'))
             hour, minute = map(int, event_time_raw.split(':'))
 
@@ -134,7 +141,7 @@ def add_event():
                 title=title,
                 description=description,
                 date=event_date,  # Store date as datetime object
-                time=event_time_raw,  # Store time as string
+                time=event_time_raw,  # Store time as string (make sure it's passed here)
                 location=location,
                 category_id=category_id,
                 featured=featured,
@@ -155,49 +162,25 @@ def add_event():
 
 
 
-
-
-
 # Edit an existing event
 @app.route("/edit_event/<int:event_id>", methods=["GET", "POST"])
 def edit_event(event_id):
     event = Event.query.get_or_404(event_id)
     categories = Category.query.all()  # Fetch categories for the dropdown
-    
+
     if request.method == "POST":
-        # Handle file upload
-        file = request.files.get('image')  # Get the uploaded file
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(app.static_folder, 'images', filename)  # Update this path
-
-            # Ensure the directory exists
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-            # Save the file
-            file.save(file_path)
-            event.image_file = filename  # Update the filename in the database
-
-        # Get the other event details from the form
-        event.title = request.form.get("title")  # Update title
-        event.description = request.form.get("description")  # Update description
-        
-        # Parse the date and time
+        # Extract date and time separately from the form
         event_date_raw = request.form.get("date")  # Expecting 'dd-mm-yyyy'
         event_time_raw = request.form.get("time")  # Expecting 'HH:MM'
 
-        # Split the date string to get day, month, year
+        # Split and handle date and time separately
         day, month, year = map(int, event_date_raw.split('-'))
         hour, minute = map(int, event_time_raw.split(':'))
 
-        # Create a datetime object and update event date
+        # Create a datetime object and update event
         event.date = datetime(year, month, day, hour, minute)
 
-        event.location = request.form.get("location")  # Update location
-        event.category_id = request.form.get("category_id")  # Update category
-        event.featured = request.form.get("featured") == "1"  # Update featured status
-        
-        # Commit changes to the database
+        # Other fields update...
         db.session.commit()
         return redirect(url_for("home"))
 
@@ -205,6 +188,7 @@ def edit_event(event_id):
     formatted_date = event.date.strftime('%d-%m-%Y')
     formatted_time = event.date.strftime('%H:%M')
     return render_template("edit_event.html", event=event, categories=categories, formatted_date=formatted_date, formatted_time=formatted_time)
+
 
 
 # Delete an event
@@ -349,9 +333,14 @@ def rsvp(event_id):
     return redirect(url_for('event_detail', event_id=event.id))
 
 
-
-    import sys
-print(sys.path)
+@app.route("/admin_dashboard")
+def admin_dashboard():
+    events = Event.query.order_by(Event.date.desc()).all()  # Fetch all events ordered by date
+    rsvp_counts = {event.id: RSVP.query.filter_by(event_id=event.id).count() for event in events}  # Count RSVPs per event
+    total_events = len(events)
+    total_rsvps = sum(rsvp_counts.values())
+    
+    return render_template("admin_dashboard.html", events=events, rsvp_counts=rsvp_counts, total_events=total_events, total_rsvps=total_rsvps)
 
 
 
