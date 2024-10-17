@@ -223,9 +223,24 @@ def edit_event(event_id):
 @app.route("/delete_event/<int:event_id>")
 def delete_event(event_id):
     event = Event.query.get_or_404(event_id)
+
+    # Manually delete associated RSVPs
+    RSVP.query.filter_by(event_id=event_id).delete()
+
+    # Delete the event
     db.session.delete(event)
     db.session.commit()
-    return redirect(url_for("home"))
+
+
+    # Fetch updated event list and RSVP counts for the admin dashboard
+    events = Event.query.order_by(Event.date.desc()).all()
+    rsvp_counts = {event.id: RSVP.query.filter_by(event_id=event.id).count() for event in events}
+    total_events = len(events)
+    total_rsvps = sum(rsvp_counts.values())
+    
+    # Re-render the admin dashboard with updated data
+    return render_template("admin_dashboard.html", events=events, rsvp_counts=rsvp_counts, total_events=total_events, total_rsvps=total_rsvps)
+
 
 # Create a new category and display existing categories
 @app.route("/add_category", methods=["GET", "POST"])
@@ -328,37 +343,53 @@ def search():
 # Create a new RSVP
 @app.route("/rsvp/<int:event_id>", methods=["POST"])
 def rsvp(event_id):
+    # Retrieve the event using the provided event_id
     event = Event.query.get_or_404(event_id)
     
+    # Debug to check event_id
+    print(f"RSVP Route: Event ID is {event_id}")
+
     # Get form data
     name = request.form.get("name")
     email = request.form.get("email")
     
-    # Check if attending checkbox is ticked (if checkbox is submitted)
+    # Check if the required fields are filled in
+    if not name or not email:
+        flash("Name and Email are required fields.", "error")
+        return redirect(url_for('event_detail', event_id=event.id))
+    
+    # Check if attending checkbox is ticked
     attending = request.form.get("attending") is not None
 
     # Check if an RSVP for this event and email already exists
-    rsvp_entry = RSVP.query.filter_by(event_id=event_id, email=email).first()
+    rsvp_entry = RSVP.query.filter_by(event_id=event.id, email=email).first()
 
     if rsvp_entry:
-        # Update existing RSVP
+        # Ensure event_id is not overwritten during the update
         rsvp_entry.attending = attending
-        rsvp_entry.name = name  # Update name in case of changes
+        rsvp_entry.name = name  # Update name if it changed
     else:
-        # Create a new RSVP entry
+        # Create a new RSVP entry if one doesn't exist
         rsvp_entry = RSVP(event_id=event.id, name=name, email=email, attending=attending)
         db.session.add(rsvp_entry)
 
-    # Commit the changes
-    db.session.commit()
+    try:
+        # Commit the changes to the database
+        db.session.commit()
 
-    # Send confirmation email using the utility function
-    if send_rsvp_confirmation(name, email, event):
-        flash('Thank you for your RSVP! A confirmation email has been sent.', 'success')
-    else:
-        flash('RSVP submitted but failed to send confirmation email.', 'error')
+        # Send confirmation email using the utility function
+        if send_rsvp_confirmation(name, email, event):
+            flash('Thank you for your RSVP! A confirmation email has been sent.', 'success')
+        else:
+            flash('RSVP submitted but failed to send confirmation email.', 'error')
+
+    except Exception as e:
+        # Handle potential database errors (e.g., IntegrityError)
+        db.session.rollback()
+        flash(f"An error occurred while saving your RSVP: {str(e)}", 'error')
 
     return redirect(url_for('event_detail', event_id=event.id))
+
 
 
 @app.route("/admin_dashboard")
