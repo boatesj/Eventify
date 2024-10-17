@@ -1,29 +1,35 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
-from config import Config
 from flask_mail import Mail
 from flask_login import current_user  # Import Flask-Login's current_user
-import os
 
 # Check if env.py exists and load it (to set environment variables locally)
 if os.path.exists("env.py"):
-    import env  # This will set environment variables from env.py
+    import env  # noqa
 
 # Initialize the app
 app = Flask(__name__)
 
-# Load environment variables from the Config class
-app.config.from_object(Config)
+# Set the SECRET_KEY from environment variables
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 
-# Initialize the database
+# Database setup: check if in development mode or production
+if os.environ.get("DEVELOPMENT") == "True":
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DB_URL")
+else:
+    uri = os.environ.get("DATABASE_URL")
+    if uri and uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+    app.config["SQLALCHEMY_DATABASE_URI"] = uri
+
+# Initialize the database and Flask-Migrate for migrations
 db = SQLAlchemy(app)
-
-# Initialize Flask-Migrate for handling migrations
 migrate = Migrate(app, db)
 
-# Initialize Flask extensions
+# Initialize Flask-Mail
 mail = Mail(app)
 
 # Custom filter to format datetime to 'dd-mm-yyyy' (U.K. format)
@@ -64,4 +70,5 @@ def inject_user():
     return dict(user=current_user)
 
 # Import routes and models at the end to avoid circular imports
-from eventify import routes, models
+from eventify import routes  # noqa
+from eventify import models  # noqa
