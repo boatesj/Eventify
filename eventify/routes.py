@@ -133,8 +133,12 @@ def add_event():
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(app.static_folder, 'images', filename)
+                print(f"File path: {file_path}")  # Log the file path
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 file.save(file_path)
+                print(f"File {filename} saved successfully.")
+            else:
+                print("File upload failed or invalid file type.")
 
             # Create the event and save it to the database
             event = Event(
@@ -169,25 +173,49 @@ def edit_event(event_id):
     categories = Category.query.all()  # Fetch categories for the dropdown
 
     if request.method == "POST":
-        # Extract date and time separately from the form
-        event_date_raw = request.form.get("date")  # Expecting 'dd-mm-yyyy'
-        event_time_raw = request.form.get("time")  # Expecting 'HH:MM'
+        try:
+            # Extract date and time separately from the form
+            event_date_raw = request.form.get("date")  # Expecting 'dd-mm-yyyy'
+            event_time_raw = request.form.get("time")  # Expecting 'HH:MM'
 
-        # Split and handle date and time separately
-        day, month, year = map(int, event_date_raw.split('-'))
-        hour, minute = map(int, event_time_raw.split(':'))
+            # Split and handle date and time separately
+            day, month, year = map(int, event_date_raw.split('-'))
+            hour, minute = map(int, event_time_raw.split(':'))
 
-        # Create a datetime object and update event
-        event.date = datetime(year, month, day, hour, minute)
+            # Create a datetime object and update event
+            event.date = datetime(year, month, day, hour, minute)
 
-        # Other fields update...
-        db.session.commit()
-        return redirect(url_for("home"))
+            # Update other event details from the form
+            event.title = request.form.get("title")
+            event.description = request.form.get("description")
+            event.location = request.form.get("location")
+            event.category_id = request.form.get("category_id")
+            event.featured = request.form.get("featured") == "1"  # Store as boolean
+
+            # Handle file upload (if a new image is uploaded)
+            file = request.files.get('image')
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.static_folder, 'images', filename)
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                file.save(file_path)
+                event.image_file = filename  # Update the filename in the database
+
+            # Commit the changes to the database
+            db.session.commit()
+            flash('Event updated successfully!', 'success')
+            return redirect(url_for("home"))
+        
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error updating event: {str(e)}", 'error')
+            return redirect(url_for("edit_event", event_id=event_id))
 
     # Format the date and time for the form
     formatted_date = event.date.strftime('%d-%m-%Y')
     formatted_time = event.date.strftime('%H:%M')
     return render_template("edit_event.html", event=event, categories=categories, formatted_date=formatted_date, formatted_time=formatted_time)
+
 
 
 
